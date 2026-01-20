@@ -37,7 +37,7 @@
               <span v-if="index > 16"> <ArrowIcon /></span>
             </td>
             <td class="px-3 py-2">{{ team.teamName }}</td>
-            <td class="px-3 py-2 text-center">{{ team.journeyNumber }}</td>
+            <td class="px-3 py-2 text-center">{{ team.matchesPlayed }}</td>
             <td class="px-3 py-2 text-center">{{ team.goalsFor }}</td>
             <td class="px-3 py-2 text-center">{{ team.goalsAgainst }}</td>
             <td

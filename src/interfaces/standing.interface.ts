@@ -1,7 +1,7 @@
 export interface Standing {
   ranking: number;
   teamName: string;
-  journeyNumber: number;
+  matchesPlayed: number;
   points: number;
   goalsFor: number;
   goalsAgainst: number;

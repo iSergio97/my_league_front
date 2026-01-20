@@ -1,30 +1,109 @@
 <template>
-  <div class="w-64">
-    <label for="fruit" class="block mb-1 text-sm font-medium text-gray-700">
-      Selecciona jornada {{ selectOption }}
-    </label>
+  <div class="flex flex-row gap-16">
+    <div class="w-64" v-if="!isErrorLeague && !isPendingLeague">
+      <label for="liga" class="block mb-1 text-sm font-medium text-gray-700">
+        Selecciona Liga
+      </label>
 
-    <select
-      id="fruit"
-      name="fruit"
-      class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      v-model="selectOption"
-      @change="emit('jornada', selectOption)"
-    >
-      <option v-for="jornada in jornadas" :value="jornada" :key="jornada">
-        Jornada {{ jornada }}
-      </option>
-    </select>
+      <select
+        id="liga"
+        name="liga"
+        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 hover:cursor-pointer"
+        v-model="leagueOption"
+      >
+        <option v-for="league in leagues" :value="league.id" :key="league.id">
+          {{ league.nombre }}
+        </option>
+      </select>
+    </div>
+    <div v-else>
+      {{ errorLeague }}
+    </div>
+
+    <div class="w-64" v-if="(!isErrorSeason && !isPendingSeason) || !leagueOption">
+      <label for="liga" class="block mb-1 text-sm font-medium text-gray-700">
+        Selecciona temporada
+      </label>
+
+      <select
+        id="temporada"
+        name="temporada"
+        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        v-model="temporadaOption"
+        :disabled="isPendingLeague || !leagueOption"
+        @change="emit('temporada', temporadaOption)"
+        :class="{
+          'hover:cursor-not-allowed': isPendingLeague || !leagueOption,
+          'hover:cursor-pointer': !isPendingLeague && leagueOption,
+        }"
+      >
+        <option v-for="season in seasons" :value="season.name" :key="season.id">
+          {{ season.name }}
+        </option>
+      </select>
+    </div>
+    <div v-else>
+      {{ errorSeason }}
+    </div>
+
+    <div class="w-64">
+      <label for="fruit" class="block mb-1 text-sm font-medium text-gray-700">
+        Selecciona jornada
+      </label>
+
+      <select
+        id="jornada"
+        name="jornada"
+        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        v-model="selectOption"
+        @change="emit('jornada', selectOption)"
+        :disabled="isPendingLeague || !temporadaOption"
+        :class="{
+          'hover:cursor-not-allowed': isPendingLeague || !temporadaOption,
+          'hover:cursor-pointer': !isPendingLeague && temporadaOption,
+        }"
+      >
+        <option v-for="jornada in jornadas" :value="jornada" :key="jornada">
+          Jornada {{ jornada }}
+        </option>
+      </select>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, type Ref } from 'vue';
+import { getLeagues } from '@/api/league.api';
+import { getSeasons } from '@/api/season.api';
+import { useQuery } from '@tanstack/vue-query';
+import { computed, ref, type Ref } from 'vue';
+
+const emit = defineEmits(['jornada', 'temporada']);
 
 const length = 38;
 const jornadas = Array.from({ length }, (_, i) => i + 1);
 
-const selectOption: Ref<number> = ref(1);
+const selectOption: Ref<number | undefined> = ref(undefined);
+const leagueOption: Ref<string | undefined> = ref(undefined);
+const temporadaOption: Ref<string | undefined> = ref(undefined);
 
-const emit = defineEmits(['jornada']);
+const {
+  data: leagues,
+  isPending: isPendingLeague,
+  isError: isErrorLeague,
+  error: errorLeague,
+} = useQuery({
+  queryKey: ['leagues'],
+  queryFn: getLeagues,
+});
+
+const {
+  data: seasons,
+  isPending: isPendingSeason,
+  isError: isErrorSeason,
+  error: errorSeason,
+} = useQuery({
+  queryKey: ['season', () => temporadaOption.value],
+  queryFn: () => (leagueOption.value ? getSeasons(leagueOption.value) : []),
+  enabled: computed(() => !!leagueOption.value),
+});
 </script>
