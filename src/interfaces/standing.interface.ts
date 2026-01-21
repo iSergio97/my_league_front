@@ -5,4 +5,6 @@ export interface Standing {
   points: number;
   goalsFor: number;
   goalsAgainst: number;
+  lastResults: string;
+  previousRanking: number;
 }
